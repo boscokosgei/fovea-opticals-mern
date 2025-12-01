@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
@@ -16,6 +17,13 @@ app.use(cors({
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
+
+// Import Routes
+const authRoutes = require('./routes/auth');
+const { auth, adminAuth } = require('./middleware/auth');
+
+//Routes
 
 // MongoDB Connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -44,9 +52,11 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/services', require('./routes/services'));
 app.use('/api/opticians', require('./routes/opticians'));
 app.use('/api/appointments', require('./routes/appointments'));
+app.use('/api/admin', adminAuth, require('./routes/admin')); // Admin only
 
 // Basic route
 app.get('/', (req, res) => {

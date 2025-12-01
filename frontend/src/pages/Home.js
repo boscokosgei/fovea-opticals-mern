@@ -9,11 +9,11 @@ const Home = () => {
       <section className="bg-gradient-to-r from-blue-50 to-indigo-100 py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Clear Vision, Better Life
+            Fovea Optical Ltd
           </h1>
+          <h2 className="text-3xl font-light mb-4" ></h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Professional eye care services with experienced opticians. 
-            Schedule your appointment today for comprehensive vision solutions.
+            Your Premier estination for high-quality optical products and comprehensive eye care services in Eldoret.
           </p>
           <div className="space-x-4">
             <Link 
@@ -36,6 +36,13 @@ const Home = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Why Choose Fovea Opticals?</h2>
+          <p className= 'text-lg text-gray-600 mb-6'>
+            At Fovea Optical Limited, we are dedicated to enhancing your vision health. As a leading provider of optical solutions, we specialize in everything from prescription glasses and contact lenses to advanced eye examinations.
+          </p>
+          <p className= "test-lg text-gray-600">
+            Our mission is to deliver cutting-edge, personalized optical care that ensures clarity, comfort, and style for every individual.
+
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
