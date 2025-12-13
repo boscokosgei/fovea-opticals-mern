@@ -1,26 +1,23 @@
 {
   "name": "fovea-opticals-backend",
   "version": "1.0.0",
-  "description": "Backend for Fovea Opticals",
-  "main": "src/index.js",
+  "description": "Backend API for Fovea Optical",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'No build step required for backend'",
+    "render-build": "echo 'Building for Render...'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cookie-parser": "^1.4.7",
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^6.13.8"
+    "dotenv": "^16.0.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
