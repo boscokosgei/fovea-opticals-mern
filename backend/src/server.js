@@ -51,6 +51,16 @@ if (!MONGODB_URI) {
 }
 
 console.log('🔗 Attempting to connect to MongoDB Atlas...');
+// Add at the top of server.js, before mongoose.connect()
+console.log('🔍 Deployment Diagnostics:');
+console.log('- Mongoose version:', require('mongoose').version);
+console.log('- Node version:', process.version);
+console.log('- MONGODB_URI present:', !!process.env.MONGODB_URI);
+console.log('- MONGODB_URI starts with:', process.env.MONGODB_URI ? 
+  process.env.MONGODB_URI.substring(0, 50) + '...' : 'MISSING');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+// Add explicit strictQuery setting for mongoose 6
+mongoose.set('strictQuery', false);
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
