@@ -60,12 +60,12 @@ console.log('- MONGODB_URI starts with:', process.env.MONGODB_URI ?
   process.env.MONGODB_URI.substring(0, 50) + '...' : 'MISSING');
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 // Add explicit strictQuery setting for mongoose 6
-mongoose.set('strictQuery', false);git 
+mongoose.set('strictQuery', false);
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s
+  serverSelectionTimeoutMS: 10000, // Timeout after 5s
   socketTimeoutMS: 45000, // Close sockets after 45s
 })
 .then(() => {
