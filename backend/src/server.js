@@ -10,8 +10,8 @@ const app = express();
 // CORS Configuration for production
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://fovea-opticals.onrender.com', // Your frontend on Render
-  'https://fovea-opticals-api.onrender.com' // Your backend on Render
+  'https://fovea-opticals-frontend.onrender.com', // Your frontend on Render
+  'https://fovea-opticals-mern.onrender.com' // Your backend on Render
 ];
 
 app.use(cors({
@@ -60,7 +60,7 @@ console.log('- MONGODB_URI starts with:', process.env.MONGODB_URI ?
   process.env.MONGODB_URI.substring(0, 50) + '...' : 'MISSING');
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 // Add explicit strictQuery setting for mongoose 6
-mongoose.set('strictQuery', false);
+mongoose.set('strictQuery', false);git 
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
