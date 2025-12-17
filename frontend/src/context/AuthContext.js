@@ -19,6 +19,8 @@ export const AuthProvider = ({ children }) => {
 
   // Your base URL already includes /api
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  // When deployed, process.env.REACT_APP_API_URL will now be:
+// "https://fovea-opticals-mern.onrender.com/api"
   console.log('🔗 API Base URL:', API_BASE_URL);
 
   const api = axios.create({
