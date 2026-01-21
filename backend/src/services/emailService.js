@@ -5,8 +5,8 @@ const nodemailer = require('nodemailer');
 const createTransporter = () => {
   return nodemailer.createTransport({
     host: 'smtp.zoho.com', // Zoho SMTP server
-    port: 587, // Use 587 for TLS, 465 for SSL
-    secure: false, // true for 465, false for other ports
+    port: 465, // Use 587 for TLS, 465 for SSL
+    secure: true, // true for 465, false for other ports
     auth: {
       user: process.env.ZOHO_EMAIL, // Your Zoho email (info@foveaopticals.com)
       pass: process.env.ZOHO_APP_PASSWORD // App-specific password (NOT your regular password!)
