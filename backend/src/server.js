@@ -1,3 +1,22 @@
+// TEMPORARY DIAGNOSTIC - ADD THIS FIRST
+console.log('🔍 STARTUP DIAGNOSTIC - Phase 1');
+console.log('Node version:', process.version);
+console.log('EmailJS variables check:');
+console.log('- SERVICE_ID:', process.env.EMAILJS_SERVICE_ID ? '✅ Present' : '❌ MISSING');
+console.log('- TEMPLATE_ID:', process.env.EMAILJS_TEMPLATE_ID ? '✅ Present' : '❌ MISSING');
+console.log('- PUBLIC_KEY:', process.env.EMAILJS_PUBLIC_KEY ? '✅ Present' : '❌ MISSING');
+console.log('- PRIVATE_KEY:', process.env.EMAILJS_PRIVATE_KEY ? '✅ Present' : '❌ MISSING');
+
+try {
+  require('@emailjs/nodejs');
+  console.log('✅ EmailJS module loaded successfully');
+} catch (e) {
+  console.error('❌ EmailJS module failed to load:', e.message);
+}
+
+console.log('🔍 END PHASE 1 - continuing startup...\n');
+
+
 // backend/src/server.js - UPDATED FOR PRODUCTION
 const express = require('express');
 const mongoose = require('mongoose');
@@ -208,6 +227,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+console.log('🔍 STARTUP DIAGNOSTIC - Phase 2');
+console.log('- All routes registered');
+console.log('- Email test routes available at /api/test-email');
+console.log('✅ Startup complete - entering listen phase');
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
