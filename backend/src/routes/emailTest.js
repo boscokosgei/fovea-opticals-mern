@@ -2,6 +2,69 @@ const express = require('express');
 const router = express.Router();
 const emailService = require('../services/emailService');
 
+
+// Add to backend/src/routes/emailTest.js
+router.get('/diagnose', async (req, res) => {
+  const diagnostics = {
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      ZOHO_EMAIL: process.env.ZOHO_EMAIL ? '✅ Set' : '❌ Missing',
+      ZOHO_APP_PASSWORD: process.env.ZOHO_APP_PASSWORD ? '✅ Set' : '❌ Missing',
+      NOTIFICATION_EMAIL: process.env.NOTIFICATION_EMAIL ? '✅ Set' : '❌ Missing'
+    },
+    smtpTests: {},
+    auth: null
+  };
+
+  const net = require('net');
+  const nodemailer = require('nodemailer');
+
+  // Test SMTP connectivity
+  const smtpServers = [
+    { host: 'smtp.zoho.com', port: 465, name: 'Zoho Main SSL' },
+    { host: 'smtp.zoho.com', port: 587, name: 'Zoho Main TLS' },
+    { host: 'smtppro.zoho.com', port: 465, name: 'Zoho Pro SSL' }
+  ];
+
+  for (const server of smtpServers) {
+    try {
+      await new Promise((resolve, reject) => {
+        const socket = net.createConnection(server.port, server.host);
+        socket.setTimeout(5000);
+        socket.once('connect', () => { socket.destroy(); resolve(); });
+        socket.once('timeout', () => { socket.destroy(); reject(new Error('Timeout')); });
+        socket.once('error', reject);
+      });
+      diagnostics.smtpTests[server.name] = '✅ Reachable';
+    } catch (error) {
+      diagnostics.smtpTests[server.name] = `❌ ${error.message}`;
+    }
+  }
+
+  // Test authentication (non-blocking)
+  if (process.env.ZOHO_EMAIL && process.env.ZOHO_APP_PASSWORD) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.zoho.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.ZOHO_EMAIL,
+          pass: process.env.ZOHO_APP_PASSWORD
+        },
+        connectionTimeout: 5000
+      });
+      await transporter.verify();
+      diagnostics.auth = '✅ Authentication successful';
+    } catch (error) {
+      diagnostics.auth = `❌ ${error.message}`;
+    }
+  }
+
+  res.json(diagnostics);
+});
+
 // Test registration email
 router.post('/test-registration', async (req, res) => {
   try {
