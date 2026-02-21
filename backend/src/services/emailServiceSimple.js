@@ -1,30 +1,41 @@
 // backend/src/services/emailServiceSimple.js
-const nodemailer = require('nodemailer');
+const emailjs = require('@emailjs/nodejs');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.zoho.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'info@foveaopticals.com',
-    pass: process.env.ZOHO_APP_PASSWORD // Add this to Render
+class SimpleEmailService {
+  async sendTest() {
+    try {
+      console.log('🔍 EmailJS Config Check:');
+      console.log('- Service ID:', process.env.EMAILJS_SERVICE_ID ? '✅ Set' : '❌ Missing');
+      console.log('- Template ID:', process.env.EMAILJS_TEMPLATE_ID ? '✅ Set' : '❌ Missing');
+      console.log('- Public Key:', process.env.EMAILJS_PUBLIC_KEY ? '✅ Set' : '❌ Missing');
+      console.log('- Private Key:', process.env.EMAILJS_PRIVATE_KEY ? '✅ Set' : '❌ Missing');
+
+      const response = await emailjs.send(
+        process.env.EMAILJS_SERVICE_ID,
+        process.env.EMAILJS_TEMPLATE_ID,
+        {
+          to_email: 'info@foveaopticals.com',
+          from_name: 'Fovea Optical System',
+          message: 'This is a test email from your Render backend',
+          reply_to: 'info@foveaopticals.com'
+        },
+        {
+          publicKey: process.env.EMAILJS_PUBLIC_KEY,
+          privateKey: process.env.EMAILJS_PRIVATE_KEY,
+        }
+      );
+      
+      console.log('✅ EmailJS Success:', response);
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('❌ EmailJS Error:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data
+      });
+      return { success: false, error: error.message };
+    }
   }
-});
+}
 
-const sendAppointmentEmail = async (appointmentData) => {
-  try {
-    await transporter.sendMail({
-      from: '"Fovea Optical" <info@foveaopticals.com>',
-      to: 'info@foveaopticals.com',
-      subject: `New Appointment: ${appointmentData.clientName}`,
-      html: `<h1>New Appointment</h1><p>${appointmentData.clientName} booked an appointment.</p>`
-    });
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Email error:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-module.exports = { sendAppointmentEmail };
+module.exports = new SimpleEmailService();

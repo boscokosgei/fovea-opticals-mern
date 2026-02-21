@@ -4,67 +4,10 @@ const emailService = require('../services/emailService');
 
 
 // Add to backend/src/routes/emailTest.js
-router.get('/diagnose', async (req, res) => {
-  const diagnostics = {
-    timestamp: new Date().toISOString(),
-    environment: {
-      NODE_ENV: process.env.NODE_ENV,
-      ZOHO_EMAIL: process.env.ZOHO_EMAIL ? '✅ Set' : '❌ Missing',
-      ZOHO_APP_PASSWORD: process.env.ZOHO_APP_PASSWORD ? '✅ Set' : '❌ Missing',
-      NOTIFICATION_EMAIL: process.env.NOTIFICATION_EMAIL ? '✅ Set' : '❌ Missing'
-    },
-    smtpTests: {},
-    auth: null
-  };
-
-  const net = require('net');
-  const nodemailer = require('nodemailer');
-
-  // Test SMTP connectivity
-  const smtpServers = [
-    { host: 'smtp.zoho.com', port: 465, name: 'Zoho Main SSL' },
-    { host: 'smtp.zoho.com', port: 587, name: 'Zoho Main TLS' },
-    { host: 'smtppro.zoho.com', port: 465, name: 'Zoho Pro SSL' }
-  ];
-
-  for (const server of smtpServers) {
-    try {
-      await new Promise((resolve, reject) => {
-        const socket = net.createConnection(server.port, server.host);
-        socket.setTimeout(5000);
-        socket.once('connect', () => { socket.destroy(); resolve(); });
-        socket.once('timeout', () => { socket.destroy(); reject(new Error('Timeout')); });
-        socket.once('error', reject);
-      });
-      diagnostics.smtpTests[server.name] = '✅ Reachable';
-    } catch (error) {
-      diagnostics.smtpTests[server.name] = `❌ ${error.message}`;
-    }
-  }
-
-  // Test authentication (non-blocking)
-  if (process.env.ZOHO_EMAIL && process.env.ZOHO_APP_PASSWORD) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.zoho.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.ZOHO_EMAIL,
-          pass: process.env.ZOHO_APP_PASSWORD
-        },
-        connectionTimeout: 5000
-      });
-      await transporter.verify();
-      diagnostics.auth = '✅ Authentication successful';
-    } catch (error) {
-      diagnostics.auth = `❌ ${error.message}`;
-    }
-  }
-
-  res.json(diagnostics);
+router.get('/simple-test', async (req, res) => {
+  const result = await simpleEmailService.sendTest();
+  res.json(result);
 });
-
 // Test registration email
 router.post('/test-registration', async (req, res) => {
   try {
@@ -91,35 +34,75 @@ router.post('/test-registration', async (req, res) => {
 });
 
 // Test appointment email
+// router.post('/test-appointment', async (req, res) => {
+//   try {
+//     const result = await emailService.sendAppointmentNotification({
+//       clientName: 'Test Client',
+//       clientEmail: 'test@example.com',
+//       clientPhone: '+254712345678',
+//       date: 'Monday, December 23, 2024',
+//       time: '10:30 AM',
+//       service: 'Comprehensive Eye Exam',
+//       optician: 'Dr. Smith',
+//       notes: 'First time patient'
+//     });
+
+//     if (result.success) {
+//       res.json({
+//         success: true,
+//         message: 'Test appointment email sent to info@foveaopticals.com'
+//       });
+//     } else {
+//       res.status(500).json({
+//         success: false,
+//         error: result.error
+//       });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+// backend/src/routes/emailTest.js - UPDATE THIS
 router.post('/test-appointment', async (req, res) => {
   try {
+    console.log('📧 Test appointment email requested');
+    
     const result = await emailService.sendAppointmentNotification({
       clientName: 'Test Client',
       clientEmail: 'test@example.com',
       clientPhone: '+254712345678',
-      date: 'Monday, December 23, 2024',
+      date: 'Monday, February 22, 2026',
       time: '10:30 AM',
       service: 'Comprehensive Eye Exam',
       optician: 'Dr. Smith',
-      notes: 'First time patient'
+      notes: 'Test from debugging'
     });
-
+    
+    console.log('Email result:', result);
+    
     if (result.success) {
-      res.json({
-        success: true,
-        message: 'Test appointment email sent to info@foveaopticals.com'
+      res.json({ 
+        success: true, 
+        message: 'Test email sent',
+        data: result 
       });
     } else {
-      res.status(500).json({
-        success: false,
-        error: result.error
+      // Send the actual error back
+      res.status(500).json({ 
+        success: false, 
+        error: result.error,
+        details: result 
       });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Test route error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 });
-
 // Test client confirmation
 router.post('/test-confirmation', async (req, res) => {
   try {
