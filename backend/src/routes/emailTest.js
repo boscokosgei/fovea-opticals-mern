@@ -1,12 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const emailService = require('../services/emailService');
+const simpleEmailService = require('../services/emailServiceSimple'); 
 
 
-// Add to backend/src/routes/emailTest.js
+// Simple test Route
 router.get('/simple-test', async (req, res) => {
-  const result = await simpleEmailService.sendTest();
-  res.json(result);
+  try {
+    console.log('📧 Simple test endpoint called');
+    const result = await simpleEmailService.sendTest();
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Simple test error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack 
+    });
+  }
 });
 // Test registration email
 router.post('/test-registration', async (req, res) => {
