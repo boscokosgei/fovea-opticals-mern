@@ -1,47 +1,75 @@
-// Add at the top
-const { sendNewClientNotification } = require('../services/emailService');
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const emailService = require('../services/emailService'); // ADD THIS LINE
 
-// In your register function, AFTER user is saved:
-const register = async (req, res) => {
+// ... existing code ...
+
+// UPDATE YOUR REGISTER FUNCTION
+exports.register = async (req, res) => {
   try {
-    // ... your existing registration code ...
-    
-    // After user is successfully saved:
-    const newUser = await user.save();
-    const token = generateToken(newUser._id);
-    
-    // 🎯 SEND EMAIL NOTIFICATION (non-blocking)
-    sendNewClientNotification({
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      phone: newUser.phone
-    }).then(emailResult => {
-      if (emailResult.success) {
-        console.log(`📧 Email sent for new client: ${newUser.email}`);
-      } else {
-        console.log(`⚠️ Email failed (registration still successful):`, emailResult.error);
-        // Log to database or error tracking service if needed
-      }
-    }).catch(emailError => {
-      console.error('⚠️ Email promise rejected:', emailError);
-      // Don't throw - registration should succeed even if email fails
+    const { name, email, password, phone, role } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+
+    // Create new user
+    const user = new User({
+      name,
+      email,
+      password,
+      phone,
+      role: role || 'client'
     });
-    
-    // Send response to client immediately
+
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 🎯 SEND REGISTRATION NOTIFICATION EMAIL (non-blocking)
+    emailService.sendRegistrationNotification({
+      name: user.name,
+      email: user.email,
+      phone: user.phone
+    }).then(result => {
+      if (result.success) {
+        console.log(`✅ Registration email sent for: ${user.email}`);
+      } else {
+        console.log(`⚠️ Registration email failed:`, result.error);
+      }
+    }).catch(err => {
+      console.error('Email error (non-blocking):', err);
+    });
+
     res.status(201).json({
       success: true,
+      message: 'User registered successfully',
       token,
       user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: newUser.role
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
       }
     });
-    
+
   } catch (error) {
-    // ... your existing error handling ...
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering user',
+      error: error.message
+    });
   }
 };

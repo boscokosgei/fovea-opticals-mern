@@ -100,6 +100,7 @@ mongoose.connect(MONGODB_URI, {
 // Routes - Use conditional imports to avoid crashes if files don't exist
 app.use('/api/auth', authRoutes);
 app.use('/api/test', require('./routes/testRoutes'));
+app.use('/api/test-email', require('./routes/emailTest'));
 
 // Conditionally load other routes if they exist
 try {
