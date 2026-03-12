@@ -1,191 +1,166 @@
 // frontend/src/pages/admin/Dashboard.js
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useAdmin } from '../../context/AdminContext';
+import { useAuth } from '../../context/AuthContext';
+import OpticiansManager from './OpticiansManager';
+import ServicesManager from './ServicesManager';
+import AppointmentsManager from './AppointmentsManager';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { user } = useAuth();
+  const { stats, fetchStats } = useAdmin();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [timeRange, setTimeRange] = useState('week');
 
   useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+    fetchStats();
+  }, [fetchStats]);
 
-  const fetchDashboardStats = async () => {
-    try {
-      const response = await axios.get('/api/admin/dashboard/stats');
-      setStats(response.data);
-    } catch (err) {
-      setError('Failed to load dashboard data');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const tabs = [
+    { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'opticians', name: 'Opticians', icon: '👨‍⚕️' },
+    { id: 'services', name: 'Services', icon: '💼' },
+    { id: 'appointments', name: 'Appointments', icon: '📅' },
+    { id: 'patients', name: 'Patients', icon: '👥' },
+    { id: 'reports', name: 'Reports', icon: '📈' }
+  ];
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  const StatCard = ({ title, value, icon, color, trend }) => (
+    <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-3 rounded-lg bg-${color}-100`}>
+          <span className="text-2xl">{icon}</span>
+        </div>
+        {trend && (
+          <span className={`text-sm font-semibold ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+          </span>
+        )}
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        {error}
-      </div>
-    );
-  }
+      <h3 className="text-gray-600 text-sm mb-1">{title}</h3>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
-      
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}!</h1>
+              <p className="text-blue-100">Here's what's happening with your practice today.</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Appointments</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats?.totalAppointments}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-green-100 rounded-lg p-3">
-              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats?.todayAppointments}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-              <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Services</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats?.totalServices}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-yellow-100 rounded-lg p-3">
-              <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 1.5a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats?.totalUsers}</p>
+            <div className="bg-white/10 p-4 rounded-lg">
+              <p className="text-sm">Last updated</p>
+              <p className="font-semibold">{new Date().toLocaleDateString()}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Link to="/admin/appointments" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition duration-300">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Appointments</h3>
-          <p className="text-gray-600 mb-4">View, confirm, and manage all appointments</p>
-          <span className="text-blue-600 font-medium">View →</span>
-        </Link>
-
-        <Link to="/admin/services" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition duration-300">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Services</h3>
-          <p className="text-gray-600 mb-4">Add, edit, or remove services</p>
-          <span className="text-blue-600 font-medium">Manage →</span>
-        </Link>
-
-        <Link to="/admin/opticians" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition duration-300">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Opticians</h3>
-          <p className="text-gray-600 mb-4">Manage your team of opticians</p>
-          <span className="text-blue-600 font-medium">Manage →</span>
-        </Link>
+      {/* Tabs */}
+      <div className="border-b bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <nav className="flex space-x-8 overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                {tab.name}
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
 
-      {/* Recent Appointments */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Recent Appointments</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Patient
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Service
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {stats?.recentAppointments.map((appointment) => (
-                <tr key={appointment._id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{appointment.patientName}</div>
-                    <div className="text-sm text-gray-500">{appointment.patientEmail}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{appointment.service?.name}</div>
-                    <div className="text-sm text-gray-500">${appointment.service?.price}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(appointment.appointmentDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                        appointment.status === 'completed' ? 'bg-blue-100 text-blue-800' : 
-                        appointment.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                        'bg-yellow-100 text-yellow-800'}`}>
-                      {appointment.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link to={`/admin/appointments/${appointment._id}`} className="text-blue-600 hover:text-blue-900 mr-4">
-                      View
-                    </Link>
-                    <button className="text-green-600 hover:text-green-900">
-                      Confirm
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8">
+        {activeTab === 'overview' && (
+          <div className="space-y-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard title="Total Opticians" value={stats.totalOpticians} icon="👨‍⚕️" color="blue" trend={5} />
+              <StatCard title="Total Services" value={stats.totalServices} icon="💼" color="green" trend={2} />
+              <StatCard title="Appointments" value={stats.totalAppointments} icon="📅" color="purple" trend={-3} />
+              <StatCard title="Active Patients" value={stats.totalPatients} icon="👥" color="yellow" trend={8} />
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">Appointments Overview</h2>
+                  <select 
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(e.target.value)}
+                    className="border rounded-lg px-3 py-2"
+                  >
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                  </select>
+                </div>
+                <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                  <p className="text-gray-500">Chart will be displayed here</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-bold mb-6">Recent Activity</h2>
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                        <div>
+                          <p className="font-medium">New appointment booked</p>
+                          <p className="text-sm text-gray-500">10 minutes ago</p>
+                        </div>
+                      </div>
+                      <span className="text-blue-600 cursor-pointer hover:underline">View</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-6">Quick Actions</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button className="p-4 border rounded-lg hover:bg-blue-50 transition-colors">
+                  <span className="text-2xl block mb-2">👨‍⚕️</span>
+                  <span className="text-sm font-medium">Add Optician</span>
+                </button>
+                <button className="p-4 border rounded-lg hover:bg-blue-50 transition-colors">
+                  <span className="text-2xl block mb-2">💼</span>
+                  <span className="text-sm font-medium">Add Service</span>
+                </button>
+                <button className="p-4 border rounded-lg hover:bg-blue-50 transition-colors">
+                  <span className="text-2xl block mb-2">📊</span>
+                  <span className="text-sm font-medium">Generate Report</span>
+                </button>
+                <button className="p-4 border rounded-lg hover:bg-blue-50 transition-colors">
+                  <span className="text-2xl block mb-2">⚙️</span>
+                  <span className="text-sm font-medium">Settings</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'opticians' && <OpticiansManager />}
+        {activeTab === 'services' && <ServicesManager />}
+        {activeTab === 'appointments' && <AppointmentsManager />}
       </div>
     </div>
   );

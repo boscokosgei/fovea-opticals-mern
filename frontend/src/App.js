@@ -19,14 +19,16 @@ import Register from './pages/auth/Register';
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
 import AdminAppointments from './pages/admin/Appointments';
-import AdminServices from './pages/admin/Services';
-import AdminOpticians from './pages/admin/Opticians';
+import AdminServices from './pages/admin/ServiceManager';
+import AdminOpticians from './pages/admin/OpticiansManager';
+import { AdminProvider } from './context/AdminContext'
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <NotificationProvider>
+          <AdminProvider>
           <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
             <main className="flex-grow animate-fadeIn">
@@ -41,7 +43,7 @@ function App() {
                 } />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/admin" element={
+                <Route path="/admin/*" element={
                   <ProtectedRoute adminOnly>
                     <Dashboard />
                   </ProtectedRoute>
@@ -50,6 +52,7 @@ function App() {
             </main>
             <Footer />
           </div>
+          </AdminProvider>
         </NotificationProvider>
       </AuthProvider>
     </Router>
