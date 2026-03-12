@@ -1,4 +1,4 @@
-// src/App.js - CORRECTED VERSION
+// frontend/src/App.js - FINAL CORRECTED VERSION
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -19,7 +19,7 @@ import Register from './pages/auth/Register';
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
 import AdminAppointments from './pages/admin/Appointments';
-import AdminServices from './pages/admin/ServiceManager';
+import AdminServices from './pages/admin/ServicesManager'; // FIXED: Changed from ServiceManager
 import AdminOpticians from './pages/admin/OpticiansManager';
 import { AdminProvider } from './context/AdminContext'
 
