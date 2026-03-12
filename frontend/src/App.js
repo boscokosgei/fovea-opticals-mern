@@ -18,7 +18,7 @@ import Register from './pages/auth/Register';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
-import AdminAppointments from './pages/admin/Appointments';
+import AdminAppointments from './pages/admin/AppointmentsManager';
 import AdminServices from './pages/admin/ServicesManager'; // FIXED: Changed from ServiceManager
 import AdminOpticians from './pages/admin/OpticiansManager';
 import { AdminProvider } from './context/AdminContext'
