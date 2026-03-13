@@ -94,13 +94,21 @@ const OpticiansManager = () => {
         if (key === 'availableDays') {
           submitData.append(key, JSON.stringify(formData[key]));
         } else if (key !== 'image') { // Skip image field if we're uploading file
-          submitData.append(key, formData[key]);
+          submitData.append(key, formData[key]?.toString() || '');
         }
       });
 
       // Append file if selected
       if (selectedFile) {
         submitData.append('image', selectedFile);
+      }else if (formData.image && !editingOptician) {
+      // If there's an image URL from editing, include it
+      submitData.append('image', formData.image);
+      }
+      // Debug: Log FormData contents
+      console.log('📤 Submitting FormData:');
+      for (let pair of submitData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
       }
 
       let result;

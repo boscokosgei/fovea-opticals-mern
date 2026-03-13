@@ -115,6 +115,12 @@ export const AdminProvider = ({ children }) => {
     const createOptician = async (formData) => {
     try {
         setLoading(true);
+
+        // Log FormData contents for debugging
+        console.log('📤 Sending FormData to backend:');
+        for (let pair of formData.entries()) {
+        console.log(pair[0] + ':', pair[1]);
+        }
         
         // Important: Don't set Content-Type header - let browser set it with boundary
         const response = await api.post('/opticians', formData, {

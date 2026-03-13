@@ -45,6 +45,17 @@ router.post('/', upload.single('image'), async (req, res) => {
     console.log('📝 Creating new optician:', req.body);
     console.log('📸 File uploaded:', req.file);
 
+    // Parse availableDays if it's a string
+    let availableDays = req.body.availableDays;
+    if (typeof availableDays === 'string') {
+      try {
+        availableDays = JSON.parse(availableDays);
+      } catch (e) {
+        // If it's not valid JSON, split by comma
+        availableDays = availableDays.split(',').map(day => day.trim());
+      }
+    }
+
     //Build image URL
     let imageUrl = '';
     if (req.file) {
@@ -78,7 +89,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       qualification: req.body.qualification || '',
       bio: req.body.bio || '',
       image: imageUrl || req.body.image || '',
-      availableDays: req.body.availableDays || [],
+      availableDays: availableDays || [],
       consultationFee: req.body.consultationFee || 0,
       isActive: true
     });
@@ -112,6 +123,15 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     if (!optician) {
       return res.status(404).json({ error: 'Optician not found' });
     }
+    // Parse availableDays if it's a string
+    let availableDays = req.body.availableDays;
+    if (typeof availableDays === 'string') {
+      try {
+        availableDays = JSON.parse(availableDays);
+      } catch (e) {
+        availableDays = availableDays.split(',').map(day => day.trim());
+      }
+    }
      // Update fields
     const updateData = {
       name: req.body.name,
@@ -122,7 +142,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       qualification: req.body.qualification,
       bio: req.body.bio,
       consultationFee: Number(req.body.consultationFee) || 0,
-      availableDays: req.body.availableDays ? JSON.parse(req.body.availableDays) : []
+      availableDays: availableDays|| []
     };
     // Handle image upload
     if (req.file) {
