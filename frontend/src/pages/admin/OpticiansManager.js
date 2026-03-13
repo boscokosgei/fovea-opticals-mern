@@ -38,8 +38,13 @@ const OpticiansManager = () => {
   }, [fetchOpticians]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+
+    console.log(`🔄 Input changed: ${name} = ${value}`);
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleDayToggle = (day) => {
@@ -53,6 +58,15 @@ const OpticiansManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log('🔍 FULL FORM DATA BEFORE SUBMIT:', JSON.stringify(formData, null, 2));
+    console.log('🔍 Specialization value:', formData.specialization);
+
+    if (!formData.specialization) {
+      console.error('❌ Specialization is empty!');
+      alert('Please select a specialization');
+      return;
+    }
     
     const opticianData = {
       ...formData,
@@ -269,7 +283,7 @@ const OpticiansManager = () => {
                     </label>
                     <select
                       name="specialization"
-                      value={formData.specialization}
+                      value={formData.specialization || ''}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
