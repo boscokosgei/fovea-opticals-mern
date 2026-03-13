@@ -79,36 +79,82 @@ export const AdminProvider = ({ children }) => {
   }, [api]);
 
   // Create optician
-  const createOptician = async (data) => {
-    try {
-      setLoading(true);
-      const response = await api.post('/opticians', data);
-      setOpticians(prev => [...prev, response.data]);
-      success('Optician added successfully!');
-      return { success: true, data: response.data };
-    } catch (err) {
-      showError(err.response?.data?.error || 'Failed to add optician');
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
-    }
-  };
+//   const createOptician = async (data) => {
+//     try {
+//       setLoading(true);
+//       const response = await api.post('/opticians', data);
+//       setOpticians(prev => [...prev, response.data]);
+//       success('Optician added successfully!');
+//       return { success: true, data: response.data };
+//     } catch (err) {
+//       showError(err.response?.data?.error || 'Failed to add optician');
+//       return { success: false, error: err.message };
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-  // Update optician
-  const updateOptician = async (id, data) => {
+//   // Update optician
+//   const updateOptician = async (id, data) => {
+//     try {
+//       setLoading(true);
+//       const response = await api.put(`/opticians/${id}`, data);
+//       setOpticians(prev => prev.map(o => o._id === id ? response.data : o));
+//       success('Optician updated successfully!');
+//       return { success: true, data: response.data };
+//     } catch (err) {
+//       showError(err.response?.data?.error || 'Failed to update optician');
+//       return { success: false, error: err.message };
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+  //Create Optician
+  // In AdminContext.js, update createOptician and updateOptician functions:
+
+    const createOptician = async (formData) => {
     try {
-      setLoading(true);
-      const response = await api.put(`/opticians/${id}`, data);
-      setOpticians(prev => prev.map(o => o._id === id ? response.data : o));
-      success('Optician updated successfully!');
-      return { success: true, data: response.data };
+        setLoading(true);
+        
+        // Important: Don't set Content-Type header - let browser set it with boundary
+        const response = await api.post('/opticians', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+        });
+        
+        setOpticians(prev => [...prev, response.data]);
+        success('Optician added successfully!');
+        return { success: true, data: response.data };
     } catch (err) {
-      showError(err.response?.data?.error || 'Failed to update optician');
-      return { success: false, error: err.message };
+        console.error('Error creating optician:', err);
+        showError(err.response?.data?.error || 'Failed to add optician');
+        return { success: false, error: err.message };
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
+
+    const updateOptician = async (id, formData) => {
+    try {
+        setLoading(true);
+        const response = await api.put(`/opticians/${id}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+        });
+        
+        setOpticians(prev => prev.map(o => o._id === id ? response.data : o));
+        success('Optician updated successfully!');
+        return { success: true, data: response.data };
+    } catch (err) {
+        console.error('Error updating optician:', err);
+        showError(err.response?.data?.error || 'Failed to update optician');
+        return { success: false, error: err.message };
+    } finally {
+        setLoading(false);
+    }
+    };
 
   // Delete optician
   const deleteOptician = async (id) => {

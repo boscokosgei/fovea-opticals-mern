@@ -1,7 +1,13 @@
 // backend/src/routes/opticians.js
 const express = require('express');
 const Optician = require('../models/Optician');
+const upload = require('../middleware/upload');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
+
+// Serve uploaded files statically
+router.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 // GET all opticians
 router.get('/', async (req, res) => {
@@ -34,9 +40,18 @@ router.get('/:id', async (req, res) => {
 });
 
 // ADD THIS MISSING POST ROUTE
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   try {
     console.log('📝 Creating new optician:', req.body);
+    console.log('📸 File uploaded:', req.file);
+
+    //Build image URL
+    let imageUrl = '';
+    if (req.file) {
+      // For production, use full URL
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+      imageUrl = `${baseUrl}/api/opticians/uploads/${req.file.filename}`;
+    }
     
     // Validate required fields
     const { name, email, phone, specialization } = req.body;
@@ -62,7 +77,7 @@ router.post('/', async (req, res) => {
       experience: req.body.experience || '',
       qualification: req.body.qualification || '',
       bio: req.body.bio || '',
-      image: req.body.image || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      image: imageUrl || req.body.image || '',
       availableDays: req.body.availableDays || [],
       consultationFee: req.body.consultationFee || 0,
       isActive: true
@@ -87,7 +102,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update optician
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const optician = await Optician.findByIdAndUpdate(
       req.params.id,
@@ -97,8 +112,47 @@ router.put('/:id', async (req, res) => {
     if (!optician) {
       return res.status(404).json({ error: 'Optician not found' });
     }
+     // Update fields
+    const updateData = {
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      specialization: req.body.specialization,
+      experience: req.body.experience,
+      qualification: req.body.qualification,
+      bio: req.body.bio,
+      consultationFee: Number(req.body.consultationFee) || 0,
+      availableDays: req.body.availableDays ? JSON.parse(req.body.availableDays) : []
+    };
+    // Handle image upload
+    if (req.file) {
+      // Delete old image if it exists and is from our uploads
+      if (optician.image && optician.image.includes('/uploads/')) {
+        const oldImagePath = path.join(__dirname, '../../uploads', path.basename(optician.image));
+        fs.unlink(oldImagePath, (err) => {
+          if (err) console.error('Error deleting old image:', err);
+        });
+      }
+      
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+      updateData.image = `${baseUrl}/api/opticians/uploads/${req.file.filename}`;
+    }
+
+    const updatedOptician = await Optician.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
     res.json(optician);
   } catch (error) {
+    console.error('Error updating optician:', error);
+    
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err);
+      });
+    }
     res.status(400).json({ error: error.message });
   }
 });
@@ -110,6 +164,14 @@ router.delete('/:id', async (req, res) => {
     if (!optician) {
       return res.status(404).json({ error: 'Optician not found' });
     }
+    // Delete associated image
+    if (optician.image && optician.image.includes('/uploads/')) {
+      const imagePath = path.join(__dirname, '../../uploads', path.basename(optician.image));
+      fs.unlink(imagePath, (err) => {
+        if (err) console.error('Error deleting image file:', err);
+      });
+    }
+    await Optician.findByIdAndDelete(req.params.id);
     res.json({ message: 'Optician deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
