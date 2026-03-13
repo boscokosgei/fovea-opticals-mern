@@ -32,9 +32,11 @@ export const AdminProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await api.get('/opticians');
+      console.log('✅ Fetched opticians:', response.data.length);
       setOpticians(response.data);
       return response.data;
     } catch (err) {
+      console.error('❌ Failed to fetch opticians:', err);
       showError('Failed to fetch opticians');
       console.error(err);
     } finally {
