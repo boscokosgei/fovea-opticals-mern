@@ -1,14 +1,15 @@
-// src/pages/BookAppointment.js - CORRECTED VERSION
+// src/pages/BookAppointment.js - UPDATED VERSION
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const BookAppointment = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { userorka } = useAuth();
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState([]);
   const [opticians, setOpticians] = useState([]);
+  const [fetchError, setFetchError] = useState('');
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -20,27 +21,57 @@ const BookAppointment = () => {
     notes: ''
   });
 
-  // Fetch services for dropdown
+  // Fetch services when component mounts
   useEffect(() => {
+    console.log('🔄 BookAppointment mounted, fetching data...');
     fetchServices();
     fetchOpticians();
   }, []);
 
   const fetchServices = async () => {
     try {
-      const response = await fetch('/api/services');
+      console.log('📡 Fetching services from API...');
+      
+      // Get API URL from environment or use default
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const url = `${API_URL}/services`;
+      console.log('🔗 Fetching from:', url);
+      
+      const response = await fetch(url);
+      console.log('📥 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setServices(data);
+      console.log('✅ Services fetched:', data);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        setServices(data);
+        setFetchError('');
+      } else {
+        console.log('⚠️ No services found in database');
+        setFetchError('No services available. Please contact admin.');
+        // Set empty array to prevent undefined errors
+        setServices([]);
+      }
     } catch (error) {
-      console.error('Error fetching services:', error);
+      console.error('❌ Error fetching services:', error);
+      setFetchError('Failed to load services. Please try again later.');
+      setServices([]);
     }
   };
 
   const fetchOpticians = async () => {
     try {
-      const response = await fetch('/api/opticians');
-      const data = await response.json();
-      setOpticians(data);
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/opticians`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setOpticians(data);
+      }
     } catch (error) {
       console.error('Error fetching opticians:', error);
     }
@@ -60,22 +91,20 @@ const BookAppointment = () => {
     console.log('📝 Submitting appointment:', formData);
 
     try {
-      // Prepare data for API
       const appointmentData = {
         patientName: formData.name,
         patientEmail: formData.email,
         patientPhone: formData.phone,
-        service: formData.service, // This should be the service ID
-        optician: formData.optician || null, // Optional
+        service: formData.service,
+        optician: formData.optician || null,
         date: formData.date,
         time: formData.time,
         notes: formData.notes,
         status: 'pending'
       };
 
-      console.log('📤 Sending to API:', appointmentData);
-
-      const response = await fetch('/api/appointments', {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/appointments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,11 +113,10 @@ const BookAppointment = () => {
       });
 
       const data = await response.json();
-      console.log('📥 Response:', data);
 
       if (response.ok) {
-        alert('✅ Appointment booked successfully! We will contact you shortly to confirm.');
-        navigate('/'); // Redirect to home
+        alert('✅ Appointment booked successfully! We will contact you shortly.');
+        navigate('/');
       } else {
         alert('❌ Error: ' + (data.error || 'Failed to book appointment'));
       }
@@ -104,6 +132,12 @@ const BookAppointment = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-bold text-center mb-8">Book an Appointment</h1>
+        
+        {fetchError && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700">
+            {fetchError}
+          </div>
+        )}
         
         <div className="bg-white p-8 rounded-xl shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -152,14 +186,22 @@ const BookAppointment = () => {
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={formData.service}
                   onChange={handleChange}
+                  disabled={services.length === 0}
                 >
-                  <option value="">Select a service</option>
+                  <option value="">
+                    {services.length === 0 ? 'No services available' : 'Select a service'}
+                  </option>
                   {services.map(service => (
                     <option key={service._id} value={service._id}>
                       {service.name} - KES {service.price} ({service.duration} min)
                     </option>
                   ))}
                 </select>
+                {services.length === 0 && !fetchError && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Loading services...
+                  </p>
+                )}
               </div>
             </div>
 
@@ -230,10 +272,10 @@ const BookAppointment = () => {
             
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold disabled:opacity-50"
+              disabled={loading || services.length === 0}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Booking...' : 'Book Appointment'}
+              {loading ? 'Booking...' : services.length === 0 ? 'No Services Available' : 'Book Appointment'}
             </button>
           </form>
         </div>

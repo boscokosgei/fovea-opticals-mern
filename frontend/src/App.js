@@ -12,7 +12,7 @@ import TestAuth from './components/TestAuth';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import Opticians from './pages/Opticians';
-import Appointments from './pages/Appointments';
+import BookAppointment from './pages/Appointments';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
@@ -36,9 +36,9 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/services" element={<Services />} />
                 <Route path="/opticians" element={<Opticians />} />
-                <Route path="/appointments" element={
+                <Route path="/appointments" element=  {
                   <ProtectedRoute>
-                    <Appointments />
+                    <BookAppointment />
                   </ProtectedRoute>
                 } />
                 <Route path="/login" element={<Login />} />
