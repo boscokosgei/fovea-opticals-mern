@@ -52,6 +52,7 @@ router.get('/:id', async (req, res) => {
 // POST create appointment
 router.post('/', async (req, res) => {
   try {
+    console.log('📝 Creating appointment with data:', req.body);
     const appointment = new Appointment(req.body);
     await appointment.save();
     res.status(201).json(appointment);
