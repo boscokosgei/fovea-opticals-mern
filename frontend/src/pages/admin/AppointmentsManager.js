@@ -19,9 +19,20 @@ const AppointmentsManager = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
+      console.log('Fetching appointments...');
       // Replace with your actual API call
-      const response = await fetch('/api/appointments');
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const response = await fetch('${API_URL}/appointments');
+
+      console.log('📥 Response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    
       const data = await response.json();
+
+      console.log('✅ Appointments fetched:', data);
+
       setAppointments(data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
