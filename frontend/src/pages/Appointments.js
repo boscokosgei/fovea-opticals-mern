@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 const BookAppointment = () => {
   const navigate = useNavigate();
-  const { userorka } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState([]);
   const [opticians, setOpticians] = useState([]);
