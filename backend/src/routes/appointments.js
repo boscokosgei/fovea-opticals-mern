@@ -7,9 +7,10 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const appointments = await Appointment.find()
-      .populate('service')
-      .populate('optician')
-      .sort({ appointmentDate: 1 });
+      .sort({ date: -1 })
+      .populate('service', 'name')
+      .populate('optician', 'name')
+      //.sort({ appointmentDate: 1 });
     res.json(appointments);
   } catch (error) {
     console.error('Error fetching appointments:', error);
@@ -17,25 +18,75 @@ router.get('/', async (req, res) => {
   }
 });
 
-// CREATE appointment
+// GET appointments stats
+router.get('/stats', async (req, res) => {
+  try {
+    const total = await Appointment.countDocuments();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayCount = await Appointment.countDocuments({
+      date: { $gte: today }
+    });
+
+    res.json({ total, today: todayCount });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+// GET single appointment
+router.get('/:id', async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('optician', 'name')
+      .populate('service', 'name');
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    res.json(appointment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST create appointment
 router.post('/', async (req, res) => {
   try {
-    console.log('📅 Creating new appointment:', req.body);
     const appointment = new Appointment(req.body);
     await appointment.save();
-    
-    // Populate the saved appointment with service and optician details
-    await appointment.populate('service');
-    await appointment.populate('optician');
-    
-    console.log('✅ Appointment created successfully');
     res.status(201).json(appointment);
   } catch (error) {
-    console.error('❌ Error creating appointment:', error);
-    res.status(400).json({ 
-      error: 'Failed to create appointment',
-      details: error.message 
-    });
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// PATCH update appointment status
+router.patch('/:id', async (req, res) => {
+  try {
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    res.json(appointment);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// DELETE appointment
+router.delete('/:id', async (req, res) => {
+  try {
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    res.json({ message: 'Appointment deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
