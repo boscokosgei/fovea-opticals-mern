@@ -27,7 +27,14 @@ const ServicesManager = () => {
     { id: 'surgery', name: 'Eye Surgery', icon: '🔬' }
   ];
 
-  const durations = ['30 min', '45 min', '60 min', '90 min', '120 min'];
+  const durations = [
+    { value: 30,label: '30 minutes'},
+    { value: 45,label: '45 minutes'},
+    { value: 60,label: '60 minutes'},
+    { value: 90,label: '90 minutes'},
+    { value: 120,label: '120 minutes'},
+
+  ];
 
   useEffect(() => {
     fetchServices();
@@ -307,7 +314,7 @@ const ServicesManager = () => {
                     >
                       <option value="">Select duration</option>
                       {durations.map(dur => (
-                        <option key={dur} value={dur}>{dur}</option>
+                        <option key={dur.value} value={dur.value}>{dur.label}</option>
                       ))}
                     </select>
                   </div>
