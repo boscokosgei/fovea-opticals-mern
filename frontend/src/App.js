@@ -18,10 +18,11 @@ import Register from './pages/auth/Register';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
-import AdminAppointments from './pages/admin/AppointmentsManager';
+//import AdminAppointments from './pages/admin/AppointmentsManager';
 import AdminServices from './pages/admin/ServicesManager'; // FIXED: Changed from ServiceManager
 import AdminOpticians from './pages/admin/OpticiansManager';
 import { AdminProvider } from './context/AdminContext'
+import AppointmentsManager from './pages/admin/AppointmentsManager';
 
 function App() {
   return (
@@ -46,6 +47,21 @@ function App() {
                 <Route path="/admin/*" element={
                   <ProtectedRoute adminOnly>
                     <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/appointments" element={
+                  <ProtectedRoute adminOnly>
+                    <AppointmentsManager />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/services" element={
+                  <ProtectedRoute adminOnly>
+                    <AdminServices />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/opticians" element={
+                  <ProtectedRoute adminOnly>
+                    <AdminOpticians />
                   </ProtectedRoute>
                 } />
               </Routes>
